@@ -32,7 +32,16 @@
             <ListBox x:Name="lstMsgs" HorizontalAlignment="Stretch"
                      Padding="20 10" BorderThickness="1"/>
         </ScrollViewer>
-        
+
+        <StackPanel Orientation="Horizontal" Grid.Row="3" HorizontalAlignment="Center">
+            <Button x:Name="btnOpenCounter" Padding="20 10" Margin="20" Click="btnOpenCounter_Click">
+                Open Counter Connection
+            </Button>
+            <Button x:Name="btnIncCounter" Padding="20 10" Margin="20" Click="btnIncCounter_Click">
+                Increment Counter 
+            </Button>
+        </StackPanel>
+                    
 
     </Grid>
 </Window>

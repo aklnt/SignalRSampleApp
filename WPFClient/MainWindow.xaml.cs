@@ -13,26 +13,34 @@ namespace WPFClient
     public partial class MainWindow : Window
     {
         HubConnection connection;
+        HubConnection counterConnection;
         public MainWindow()
         {
             InitializeComponent();
             btnSendMsg.IsEnabled= false;
+            btnIncCounter.IsEnabled= false;
 
             connection = new HubConnectionBuilder()
                 .WithUrl("https://localhost:7030/chathub")
                 .WithAutomaticReconnect()
                 .Build();
 
-            connection.Reconnecting += (sender) =>
-            {
-                this.Dispatcher.Invoke(() =>
-                {
-                    var newMessage = "Attempting to reconnect...";
-                    lstMsgs.Items.Add(newMessage);
-                });
+            counterConnection = new HubConnectionBuilder()
+                .WithUrl("https://localhost:7030/counterhub")
+                .WithAutomaticReconnect()
+                .Build();
 
-                return Task.CompletedTask;
-            };
+            #region connection_Events
+            connection.Reconnecting += (sender) =>
+                {
+                    this.Dispatcher.Invoke(() =>
+                    {
+                        var newMessage = "Attempting to reconnect...";
+                        lstMsgs.Items.Add(newMessage);
+                    });
+
+                    return Task.CompletedTask;
+                };
 
             connection.Reconnected += (sender) =>
             {
@@ -57,9 +65,11 @@ namespace WPFClient
                 });
 
                 return Task.CompletedTask;
-            };
+            }; 
+            #endregion
         }
 
+        #region chat_btns...
         private async void btnOpenConnection_Click(object sender, RoutedEventArgs e)
         {
             connection.On<string, string>("ReceiveMessage", (user, message) =>
@@ -80,7 +90,7 @@ namespace WPFClient
             }
             catch (Exception ex)
             {
-                   lstMsgs.Items.Add($"{ex.Message}");
+                lstMsgs.Items.Add($"{ex.Message}");
             }
         }
 
@@ -89,12 +99,43 @@ namespace WPFClient
             try
             {
                 await connection.InvokeAsync("SendMessage",
-                    "WPF Client",txtMsgInput.Text);
+                    "WPF Client", txtMsgInput.Text);
             }
             catch (Exception ex)
             {
                 lstMsgs.Items.Add($"{ex.Message}");
             }
         }
+        #endregion
+
+        #region counter_btns...
+        private async void btnOpenCounter_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                await counterConnection.StartAsync();
+                btnOpenCounter.IsEnabled = false;
+                btnIncCounter.IsEnabled = true;
+            }
+            catch (Exception ex)
+            {
+                lstMsgs.Items.Add($"{ex.Message}");
+            }
+        }
+
+        private async void btnIncCounter_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                await counterConnection.InvokeAsync("AddToTotal",
+                    "WPF Client", 1);
+            }
+            catch (Exception ex)
+            {
+
+                lstMsgs.Items.Add($"{ex.Message}");
+            }
+        } 
+        #endregion
     }
 }
